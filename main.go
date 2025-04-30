@@ -28,10 +28,13 @@ func main() {
         fmt.Scan(&note)
 
         commands.AddTransaction(date, txType, category, note, amount)
+
     case 2:
-        fmt.Println("Listagem ainda não implementada.")
+        commands.ListTransactions()
+
     case 3:
-        fmt.Println("Cálculo de saldo ainda não implementado.")
+        commands.ShowBalance()
+
     default:
         fmt.Println("Opção inválida.")
     }
