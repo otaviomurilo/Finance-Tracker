@@ -1,27 +1,53 @@
 package commands
 
 import (
-    "finance-tracker/models"
-    "finance-tracker/storage"
+    "encoding/csv"
     "fmt"
+    "os"
+    "strconv"
 )
 
-var idCounter = 1
-
 func AddTransaction(date, txType, category, note string, amount float64) {
-    tx := models.Transaction{
-        ID:       idCounter,
-        Date:     date,
-        Type:     txType,
-        Category: category,
-        Amount:   amount,
-        Note:     note,
-    }
-    err := storage.SaveTransaction(tx)
+    id := getNextID()
+
+    file, err := os.OpenFile("data.csv", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
     if err != nil {
-        fmt.Println("Erro ao salvar:", err)
+        fmt.Println("Erro ao abrir o arquivo:", err)
         return
     }
-    idCounter++
-    fmt.Println("Transação adicionada com sucesso.")
+    defer file.Close()
+
+    writer := csv.NewWriter(file)
+    defer writer.Flush()
+
+    record := []string{
+        strconv.Itoa(id),
+        date,
+        txType,
+        category,
+        fmt.Sprintf("%.2f", amount),
+        note,
+    }
+
+    if err := writer.Write(record); err != nil {
+        fmt.Println("Erro ao escrever no arquivo:", err)
+    } else {
+        fmt.Println("Transação adicionada com sucesso!")
+    }
+}
+
+func getNextID() int {
+    file, err := os.Open("data.csv")
+    if err != nil {
+        return 1
+    }
+    defer file.Close()
+
+    reader := csv.NewReader(file)
+    records, err := reader.ReadAll()
+    if err != nil {
+        return 1
+    }
+
+    return len(records) + 1
 }
